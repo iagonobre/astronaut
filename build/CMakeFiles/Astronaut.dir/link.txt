@@ -1,0 +1,1 @@
+/usr/bin/c++ CMakeFiles/Astronaut.dir/main.cpp.o CMakeFiles/Astronaut.dir/astronaut.cpp.o CMakeFiles/Astronaut.dir/flight.cpp.o CMakeFiles/Astronaut.dir/utils.cpp.o -o Astronaut 

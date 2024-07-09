@@ -1,0 +1,3 @@
+/home/iagonobre/ufrn/astronaut/build/CMakeFiles/Astronaut.dir
+/home/iagonobre/ufrn/astronaut/build/CMakeFiles/edit_cache.dir
+/home/iagonobre/ufrn/astronaut/build/CMakeFiles/rebuild_cache.dir
