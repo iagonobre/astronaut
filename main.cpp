@@ -19,9 +19,9 @@ void showMenu()
     cout << "(4) Remover Astronauta de um Voo" << endl;
     cout << "(5) Lançar um Voo" << endl;
     cout << "(6) Explodir Voo" << endl;
-    cout << "(7) Listar todos os voos" << endl;
-    cout << "(8) Listar todos os astronautas" << endl;
-    cout << "(9) Listar todos os astronautas mortos" << endl;
+    cout << "(7) Finalizar Voo" << endl;
+    cout << "(8) Listar todos os voos" << endl;
+    cout << "(9) Listar todos os astronautas" << endl;
     cout << "(10) Finalizar programa" << endl;
     cout << ">> ";
 }
@@ -65,28 +65,68 @@ int main()
         }
         case 4:
         {
-            cout << "Astronauta adicionado com sucesso" << endl;
+            clearScreen();
+            Flight::removeAstronautToAFlight();
+
+            goBackToMenu();
             break;
         }
         case 5:
         {
-            cout << "Astronauta adicionado com sucesso" << endl;
+            clearScreen();
+            Flight::launchFlight();
+            goBackToMenu();
             break;
         }
         case 6:
         {
-            cout << "Astronauta adicionado com sucesso" << endl;
+            clearScreen();
+            Flight::explodeFlight();
+
+            goBackToMenu();
             break;
         }
         case 7:
         {
-            cout << "Astronauta adicionado com sucesso" << endl;
+            clearScreen();
+            Flight::endFlight();
+
+            goBackToMenu();
             break;
         }
         case 8:
         {
             clearScreen();
-            Astronaut::listAstronauts("available");
+            int choice = 0;
+
+            do
+            {
+                cout << "Escolha uma opção abaixo:" << endl
+                     << endl;
+                cout << "(1) Voos Planejados " << endl;
+                cout << "(2) Voos Em Curso" << endl;
+                cout << "(3) Voos Finalizados " << endl;
+                cout << ">> ";
+                cin >> choice;
+            } while (choice < 0 || choice > 3);
+
+            switch (choice)
+            {
+            case 1:
+                clearScreen();
+                Flight::listFlights("planning");
+                break;
+            case 2:
+                clearScreen();
+                Flight::listFlights("inProgress");
+                break;
+            case 3:
+                clearScreen();
+                Flight::listFlights("ended");
+                break;
+            default:
+                break;
+            }
 
             goBackToMenu();
             break;
@@ -94,7 +134,33 @@ int main()
         case 9:
         {
             clearScreen();
-            Astronaut::listAstronauts("dead");
+            int choice = 0;
+
+            do
+            {
+                cout << "Escolha uma opção abaixo:" << endl
+                     << endl;
+                cout << "(1) Astronautas Disponíveis" << endl;
+                cout << "(2) Astronautas Mortos" << endl;
+                cout << ">> ";
+                cin >> choice;
+            } while (choice < 0 || choice > 2);
+
+            switch (choice)
+            {
+            case 1:
+                clearScreen();
+
+                Astronaut::listAstronauts("available");
+
+                break;
+            case 2:
+                clearScreen();
+                Astronaut::listAstronauts("dead");
+                break;
+            default:
+                break;
+            }
 
             goBackToMenu();
             break;

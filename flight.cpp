@@ -16,7 +16,7 @@ void Flight::addAstronautToAFlight(int &flightNumber)
 {
     if (flightNumber == -1)
     {
-        flightNumber = Flight::selectFlightAvailable().getFlightNumber();
+        flightNumber = Flight::selectFlight("available").getFlightNumber();
 
         if (flightNumber < 0)
         {
@@ -48,31 +48,12 @@ void Flight::addAstronautToAFlight(int &flightNumber)
         Astronaut::addFlighToAAstronaut(astronaut, flight);
     }
 
-    std::vector<Flight> newFlights;
-
-    for (const auto &flight : flights)
-    {
-        if (astronauts.empty())
-        {
-            continue;
-        }
-        if (flight.getFlightNumber() == flightNumber)
-        {
-            const Flight newFlight(flightNumber, flight.getStatus(), flight.getSucessful(), astronauts);
-            newFlights.push_back(newFlight);
-        }
-        else
-        {
-            newFlights.push_back(flight);
-        }
-    }
-
-    flights = newFlights;
-    newFlights = {};
+    Flight::changeAstronautsInAFlight(flightNumber, astronauts);
 }
 
-void Flight::removeAstronautToAFlight(int &flightNumber)
+void Flight::removeAstronautToAFlight()
 {
+    int flightNumber = Flight::selectFlight("available").getFlightNumber();
     Flight flight = Flight::findByNumber(flightNumber);
 
     if (flight.getFlightNumber() == 0)
@@ -85,34 +66,34 @@ void Flight::removeAstronautToAFlight(int &flightNumber)
     cout << "Qual passageiro deseja remover?:" << endl;
     cout << endl;
 
-    std::vector<Astronaut> astronauts = Astronaut::selectAstronautsAvailable();
+    std::vector<Astronaut> astronauts = Astronaut::selectAstronautsByFlight(flightNumber);
 
     for (auto &astronaut : astronauts)
     {
         Astronaut::removeFlighToAAstronaut(astronaut, flight);
     }
 
-    std::vector<Flight> newFlights;
+    std::vector<Astronaut> finalAstronauts;
+    std::vector<Astronaut> currentAstronauts = flight.getAstronauts();
 
-    for (const auto &flight : flights)
+    for (auto &astronaut : currentAstronauts)
     {
-        if (astronauts.empty())
+        bool shouldRemove = false;
+        for (const auto &astronautToRemove : astronauts)
         {
-            continue;
+            if (astronaut.getCpf() == astronautToRemove.getCpf())
+            {
+                shouldRemove = true;
+                break;
+            }
         }
-        if (flight.getFlightNumber() == flightNumber)
+        if (!shouldRemove)
         {
-            const Flight newFlight(flightNumber, flight.getStatus(), flight.getSucessful(), astronauts);
-            newFlights.push_back(newFlight);
-        }
-        else
-        {
-            newFlights.push_back(flight);
+            finalAstronauts.push_back(astronaut);
         }
     }
 
-    flights = newFlights;
-    newFlights = {};
+    Flight::changeAstronautsInAFlight(flightNumber, finalAstronauts);
 }
 
 void Flight::createFlights()
@@ -141,7 +122,7 @@ void Flight::createFlights()
 
 Flight Flight::findByNumber(int flightNumber)
 {
-    for (const auto &flight : flights)
+    for (auto &flight : flights)
     {
         if (flight.getFlightNumber() == flightNumber)
         {
@@ -180,7 +161,8 @@ void Flight::listFlights(const std::string &status)
     {
         cout << "-=-=-=- Lista dos Voos Finalizados -=-=-=-" << endl;
     }
-    cout << "|      Número do Voo      |      Status      |   Houve Sucesso?   |" << endl;
+    cout << "| Número do Voo |      Status      |   Houve Sucesso?   |" << endl
+         << endl;
     for (const auto &flight : foundFlights)
     {
         cout << "|   ";
@@ -188,21 +170,48 @@ void Flight::listFlights(const std::string &status)
         cout << "   |   ";
         cout << flight.getStatus();
         cout << "   |   ";
-        cout << flight.getSucessful();
+        if (flight.getStatus() != "ended")
+        {
+            cout << "Não finalizado";
+        }
+        else if (flight.getSucessful() && flight.getStatus() == "ended")
+        {
+            cout << "Sim";
+        }
+        else
+        {
+            cout << "Não";
+        }
         cout << "   |" << endl;
+
+        if (!flight.astronauts.empty())
+        {
+            cout << "Astronautas: ";
+            for (const auto astronaut : flight.astronauts)
+            {
+                std::string name = astronaut.getName();
+                cout << name;
+                if (flight.astronauts.size() > 1)
+                {
+                    cout << ", ";
+                }
+            }
+            cout << endl
+                 << endl;
+        }
     }
 }
 
-Flight Flight::selectFlightAvailable()
+Flight Flight::selectFlight(const std::string &status)
 {
-    Flight::listFlights("planning");
+    Flight::listFlights(status);
     cout << endl;
 
     int flightNumber;
 
     while (true)
     {
-        cout << "Digite o Número do Voo que deseja adicionar:" << endl;
+        cout << "Digite o Número do Voo que deseja selecionar:" << endl;
         cout << "[-1] Para retornar ao Menu Principal." << endl;
         cout << ">> ";
         cin >> flightNumber;
@@ -218,15 +227,135 @@ Flight Flight::selectFlightAvailable()
         {
             cout << "Voo não encontrado, tente novamente." << endl;
         }
-        else if (foundFlight.getStatus() != "planning")
+        else if (foundFlight.getStatus() != status)
         {
-            cout << "Voo não disponível, encerrado ou em curso. Tente novamente." << endl;
+            cout << "Voo não disponível para seleção. Tente novamente." << endl;
         }
         else
         {
             return foundFlight;
         }
     }
+}
+
+void Flight::changeAstronautsInAFlight(int &flightNumber, std::vector<Astronaut> &astronauts)
+{
+    std::vector<Flight> newFlights;
+
+    for (const auto &flight : flights)
+    {
+        if (astronauts.empty())
+        {
+            continue;
+        }
+        if (flight.getFlightNumber() == flightNumber)
+        {
+            const Flight newFlight(flightNumber, flight.getStatus(), flight.getSucessful(), astronauts);
+            newFlights.push_back(newFlight);
+        }
+        else
+        {
+            newFlights.push_back(flight);
+        }
+    }
+
+    flights = newFlights;
+    newFlights = {};
+}
+
+void Flight::explodeFlight()
+{
+    Flight flight = Flight::selectFlight("inProgress");
+
+    for (auto &realFlight : flights)
+    {
+        if (flight.getFlightNumber() == realFlight.getFlightNumber())
+        {
+            bool successful = false;
+            std::string status = "ended";
+            realFlight.setSuccessful(successful);
+            realFlight.setStatus(status);
+
+            for (auto &flightAstronaut : realFlight.getAstronauts())
+            {
+                std::string status = "dead";
+                flightAstronaut.setStatus(status);
+
+                Astronaut::setDeadAstronaut(flightAstronaut.getCpf());
+            }
+        }
+    }
+}
+
+void Flight::endFlight()
+{
+    Flight flight = Flight::selectFlight("inProgress");
+
+    for (auto &realFlight : flights)
+    {
+        if (flight.getFlightNumber() == realFlight.getFlightNumber())
+        {
+            bool successful = true;
+            std::string status = "ended";
+            realFlight.setSuccessful(successful);
+            realFlight.setStatus(status);
+
+            for (auto &flightAstronaut : realFlight.getAstronauts())
+            {
+                std::string status = "available";
+                flightAstronaut.setStatus(status);
+
+                Astronaut::setAvailableAstronaut(flightAstronaut.getCpf());
+            }
+        }
+    }
+}
+
+void Flight::launchFlight()
+{
+    Flight flight = Flight::selectFlight("planning");
+
+    if (flight.getAstronauts().empty())
+    {
+        cout << "Deve haver ao menos 1 astronauta para o lançamento";
+        return;
+    }
+
+    for (auto &astronaut : flight.getAstronauts())
+    {
+        if (astronaut.getStatus() == "unavailable")
+        {
+            cout << "Existem astronautas indisponíveis neste voo";
+            return;
+        }
+    }
+
+    for (auto &realFlight : flights)
+    {
+        if (flight.getFlightNumber() == realFlight.getFlightNumber())
+        {
+            std::string status = "inProgress";
+            realFlight.setStatus(status);
+
+            for (auto &flightAstronaut : realFlight.getAstronauts())
+            {
+                std::string status = "inProgress";
+                flightAstronaut.setStatus(status);
+
+                Astronaut::setUnavailableAstronaut(flightAstronaut.getCpf());
+            }
+        }
+    }
+}
+
+void Flight::setStatus(std::string &status)
+{
+    this->status = status;
+}
+
+void Flight::setSuccessful(bool &successful)
+{
+    this->successful = successful;
 }
 
 bool Flight::getSucessful() const

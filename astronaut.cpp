@@ -47,7 +47,7 @@ void Astronaut::createAstronauts()
     astronauts.push_back(astronaut);
 }
 
-void Astronaut::listAstronauts(const std::string &status)
+void Astronaut::listAstronauts(const std::string &status, int flightNumber)
 {
     std::vector<Astronaut> foundAstronauts;
 
@@ -55,7 +55,21 @@ void Astronaut::listAstronauts(const std::string &status)
     {
         if (astronaut.getStatus() == status)
         {
-            foundAstronauts.push_back(astronaut);
+            if (flightNumber == -1)
+            {
+                foundAstronauts.push_back(astronaut);
+            }
+            else
+            {
+                for (const auto &flight : astronaut.flights)
+                {
+                    if (flight.getFlightNumber() == flightNumber)
+                    {
+                        foundAstronauts.push_back(astronaut);
+                        break;
+                    }
+                }
+            }
         }
     }
 
@@ -77,7 +91,8 @@ void Astronaut::listAstronauts(const std::string &status)
         cout << "-=-=-=- Lista dos Astronautas Mortos -=-=-=-" << endl;
     }
 
-    cout << "|      Nome      |      CPF      | Idade |    Status    |" << endl;
+    cout << "|      Nome      |      CPF      | Idade |    Status    |" << endl
+         << endl;
     for (const auto &astronaut : foundAstronauts)
     {
         cout << "|   ";
@@ -92,7 +107,7 @@ void Astronaut::listAstronauts(const std::string &status)
 
         if (!astronaut.flights.empty())
         {
-            cout << "Voos realizados: ";
+            cout << "Voos: ";
             for (const auto flight : astronaut.flights)
             {
                 int flightNumber = flight.getFlightNumber();
@@ -104,6 +119,42 @@ void Astronaut::listAstronauts(const std::string &status)
             }
             cout << endl
                  << endl;
+        }
+    }
+}
+
+void Astronaut::setDeadAstronaut(const std::string &cpf)
+{
+    for (auto &astronaut : astronauts)
+    {
+        if (astronaut.getCpf() == cpf)
+        {
+            std::string status = "dead";
+            astronaut.setStatus(status);
+        }
+    }
+}
+
+void Astronaut::setAvailableAstronaut(const std::string &cpf)
+{
+    for (auto &astronaut : astronauts)
+    {
+        if (astronaut.getCpf() == cpf)
+        {
+            std::string status = "available";
+            astronaut.setStatus(status);
+        }
+    }
+}
+
+void Astronaut::setUnavailableAstronaut(const std::string &cpf)
+{
+    for (auto &astronaut : astronauts)
+    {
+        if (astronaut.getCpf() == cpf)
+        {
+            std::string status = "available";
+            astronaut.setStatus(status);
         }
     }
 }
@@ -125,16 +176,17 @@ std::vector<Astronaut> Astronaut::selectAstronautsAvailable()
     Astronaut::listAstronauts("available");
     cout << endl;
 
-    std::string cpf;
     std::vector<Astronaut> astronauts;
+
+    std::cin.ignore();
 
     while (true)
     {
-        cout << "Digite o CPF do astronauta que deseja selecionar:" << endl;
-        cout << "[0] Encerrar operação com passageiros" << endl;
+        std::string cpf = "";
+        cout << "Digite o CPF do astronauta que deseja adicionar:" << endl;
+        cout << "[0] Encerrar operação" << endl;
         cout << ">> ";
 
-        std::cin.ignore();
         std::getline(std::cin, cpf);
 
         if (cpf == "0" || cpf == "")
@@ -156,6 +208,63 @@ std::vector<Astronaut> Astronaut::selectAstronautsAvailable()
         {
             astronauts.push_back(foundAstronaut);
             cout << "Astronauta adicionado: " << foundAstronaut.getName() << endl;
+        }
+    }
+
+    return astronauts;
+}
+
+std::vector<Astronaut> Astronaut::selectAstronautsByFlight(int flightNumber)
+{
+    Astronaut::listAstronauts("available", flightNumber);
+    cout << endl;
+
+    std::string cpf;
+    std::vector<Astronaut> astronauts;
+
+    while (true)
+    {
+        cout << "Digite o CPF do astronauta que deseja remover:" << endl;
+        cout << "[0] Encerrar operação" << endl;
+        cout << ">> ";
+
+        std::cin.ignore();
+        std::getline(std::cin, cpf);
+
+        if (cpf == "0" || cpf == "")
+        {
+            break;
+        }
+
+        Astronaut foundAstronaut = Astronaut::findByCPF(cpf);
+
+        std::vector<Flight> flights = foundAstronaut.getFlights();
+        int counter = 0;
+
+        for (auto flight : flights)
+        {
+            if (flight.getFlightNumber() == flightNumber)
+            {
+                counter++;
+            }
+        }
+
+        if (counter = 0)
+        {
+            cout << "Este astronauta não está neste Voo, tente novamente";
+        }
+        if (foundAstronaut.getCpf() == "")
+        {
+            cout << "Astronauta não encontrado, tente novamente." << endl;
+        }
+        else if (foundAstronaut.getStatus() != "available")
+        {
+            cout << "Astronauta não disponível, tente novamente." << endl;
+        }
+        else
+        {
+            astronauts.push_back(foundAstronaut);
+            cout << "Astronauta removido: " << foundAstronaut.getName() << endl;
         }
     }
 
@@ -209,6 +318,11 @@ void Astronaut::removeFlight(Flight &flight)
 void Astronaut::setFlight(Flight &flight)
 {
     flights.push_back(flight);
+}
+
+void Astronaut::setStatus(std::string &status)
+{
+    this->status = status;
 }
 
 std::string Astronaut::getCpf() const

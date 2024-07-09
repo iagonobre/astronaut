@@ -14,14 +14,21 @@ public:
     static void createFlights();
     static void listFlights(const std::string &status);
     static void addAstronautToAFlight(int &flightNumber);
-    static void removeAstronautToAFlight(int &flightNumber);
-    static Flight selectFlightAvailable();
+    static void removeAstronautToAFlight();
+    static void explodeFlight();
+    static void endFlight();
+    static void launchFlight();
+    static Flight selectFlight(const std::string &status);
     static Flight findByNumber(int flightNumber);
+    static void changeAstronautsInAFlight(int &flightNumber, std::vector<Astronaut> &astronauts);
 
     int getFlightNumber() const;
     std::string getStatus() const;
     bool getSucessful() const;
     std::vector<Astronaut> getAstronauts() const;
+
+    void setStatus(std::string &status);
+    void setSuccessful(bool &successful);
 
 private:
     int flightNumber;
